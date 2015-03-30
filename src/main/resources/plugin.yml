@@ -1,0 +1,16 @@
+name: PlotMaster
+authors: [Double0negative, MCSG]
+version: 0.0.1
+main: bukkit.org.mcsg.plotmaster.PlotMasterPlugin
+softdepend: [GroovyRuntime, WorldEdit]
+
+
+commands:
+    plot:
+        description: Plot Master Command
+        usage: /plot <command> <args>
+        aliases: [pl, p, plots, pm, plotmaster]
+    test:
+        description: Plot Master Command
+        usage: /test
+        aliases: [t]
