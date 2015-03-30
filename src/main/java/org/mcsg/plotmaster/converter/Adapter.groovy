@@ -40,7 +40,7 @@ class Adapter {
 	private convertRegions() {
 		prog.setMax(loader.getAmountOfRegions())
 		prog.setMessage("Converting Plots...")
-		
+
 		def loadRegionGroup = {
 			if(loadBulk){
 				return loader.loadRegionsBulk(50)
@@ -79,11 +79,11 @@ class Adapter {
 			prog.incProgress(regions.size())
 		}
 	}
-	
+
 	private convertMembers() {
 		prog.setMax(loader.getAmountOfMembers())
 		prog.setMessage("Converting Users...")
-		
+
 		def loadMemberGroup = {
 			if(loadBulk){
 				return loader.loadMembersBulk(50)
