@@ -9,119 +9,119 @@ import org.mcsg.plotmaster.converter.util.Progress
 class Adapter {
 
 
-	LoadFormat loader
-	SaveFormat saver
-	Map settings
+    LoadFormat loader
+    SaveFormat saver
+    Map settings
 
-	boolean loadBulk
-	boolean saveBulk
+    boolean loadBulk
+    boolean saveBulk
 
-	Progress prog = new Progress()
+    Progress prog = new Progress()
 
-	public Adapter(LoadFormat loader, SaveFormat saver, Map settings){
-		this.loader = loader
-		this.saver = saver
+    public Adapter(LoadFormat loader, SaveFormat saver, Map settings){
+        this.loader = loader
+        this.saver = saver
 
-		loadBulk = loader.supportsBulk()
-		saveBulk = saver.supportsBulk()
-	}
-
-
-	public Progress beginConversion(){
-		Thread.start {
-			convertRegions()
-			convertMembers()
-		}
-
-		return prog
-	}
+        loadBulk = loader.supportsBulk()
+        saveBulk = saver.supportsBulk()
+    }
 
 
-	private convertRegions() {
-		prog.setMax(loader.getAmountOfRegions())
-		prog.setMessage("Converting Plots...")
+    public Progress beginConversion(){
+        Thread.start {
+            convertRegions()
+            convertMembers()
+        }
 
-		def loadRegionGroup = {
-			if(loadBulk){
-				return loader.loadRegionsBulk(50)
-			} else {
-				List<Region> regions = []
-				for(a in [0..50]) {
-					Region r = loader.nextRegion()
-					if(r){
-						regions.add(r)
-					} else {
-						break;
-					}
-				}
-				return regions
-			}
-		}
-
-		def saveRegionGroup = { List<Region> regions ->
-			if(saveBulk){
-				saver.saveRegionsBulk(regions)
-			} else {
-				regions.each {
-					saver.saveRegion(it)
-				}
-			}
-		}
+        return prog
+    }
 
 
-		List<Region> regions
+    private convertRegions() {
+        prog.setMax(loader.getAmountOfRegions())
+        prog.setMessage("Converting Plots...")
 
-		while((regions = loadRegionGroup())) {
-			if(regions.size() == 0){
-				break
-			}
-			saveRegionGroup(regions)
-			prog.incProgress(regions.size())
-		}
-	}
+        def loadRegionGroup = {
+            if(loadBulk){
+                return loader.loadRegionsBulk(50)
+            } else {
+                List<Region> regions = []
+                for(a in [0..50]) {
+                    Region r = loader.nextRegion()
+                    if(r){
+                        regions.add(r)
+                    } else {
+                        break;
+                    }
+                }
+                return regions
+            }
+        }
 
-	private convertMembers() {
-		prog.setMax(loader.getAmountOfMembers())
-		prog.setMessage("Converting Users...")
-
-		def loadMemberGroup = {
-			if(loadBulk){
-				return loader.loadMembersBulk(50)
-			} else {
-				List<PlotMember> members = []
-				for(a in [0..50]) {
-					PlotMember r = loader.nextMember()
-					if(r){
-						members.add(r)
-					} else {
-						break;
-					}
-				}
-				return members
-			}
-		}
-
-		def saveMemberGroup = { List<PlotMember> members ->
-			if(saveBulk){
-				saver.saveMembersBulk(members)
-			} else {
-				members.each {
-					saver.saveRegion(it)
-				}
-			}
-		}
+        def saveRegionGroup = { List<Region> regions ->
+            if(saveBulk){
+                saver.saveRegionsBulk(regions)
+            } else {
+                regions.each {
+                    saver.saveRegion(it)
+                }
+            }
+        }
 
 
-		List<Region> members
+        List<Region> regions
 
-		while((members = loadMemberGroup())) {
-			if(members.size() == 0){
-				break
-			}
-			saveMemberGroup(members)
-			prog.incProgress(members.size())
-		}
-	}
+        while((regions = loadRegionGroup())) {
+            if(regions.size() == 0){
+                break
+            }
+            saveRegionGroup(regions)
+            prog.incProgress(regions.size())
+        }
+    }
+
+    private convertMembers() {
+        prog.setMax(loader.getAmountOfMembers())
+        prog.setMessage("Converting Users...")
+
+        def loadMemberGroup = {
+            if(loadBulk){
+                return loader.loadMembersBulk(50)
+            } else {
+                List<PlotMember> members = []
+                for(a in [0..50]) {
+                    PlotMember r = loader.nextMember()
+                    if(r){
+                        members.add(r)
+                    } else {
+                        break;
+                    }
+                }
+                return members
+            }
+        }
+
+        def saveMemberGroup = { List<PlotMember> members ->
+            if(saveBulk){
+                saver.saveMembersBulk(members)
+            } else {
+                members.each {
+                    saver.saveRegion(it)
+                }
+            }
+        }
+
+
+        List<Region> members
+
+        while((members = loadMemberGroup())) {
+            if(members.size() == 0){
+                break
+            }
+            saveMemberGroup(members)
+            prog.incProgress(members.size())
+        }
+    }
 
 
 }
