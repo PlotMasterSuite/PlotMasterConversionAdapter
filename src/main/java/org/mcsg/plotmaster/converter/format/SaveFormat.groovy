@@ -6,32 +6,32 @@ import org.mcsg.plotmaster.Region
 interface SaveFormat {
 
 	
-	void setup(Map settings)
+	void setup(String world, Map settings)
 	
 	
 	/**
 	 * Save a region
 	 * @param region
 	 */
-	void saveRegion(Region region)
+	void saveRegion(int index, Region region)
 	
 	/**
 	 * Save regions
 	 * @param regions
 	 */
-	void saveRegionsBulk(List<Region> regions)
+	void saveRegionsBulk(int index, List<Region> regions)
 	
 	/**
 	 * save a member
 	 * @param member
 	 */
-	void saveMember(PlotMember member)
+	void saveMember(int index, PlotMember member)
 	
 	/**
 	 * save members
 	 * @param members
 	 */
-	void saveMembersBulk(List<PlotMember> members)
+	void saveMembersBulk(int index, List<PlotMember> members)
 	
 	
 	/**
@@ -39,4 +39,7 @@ interface SaveFormat {
 	 * @return
 	 */
 	boolean supportsBulk()
+	
+	
+	void finish()
 }

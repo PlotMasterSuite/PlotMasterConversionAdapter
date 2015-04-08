@@ -6,33 +6,35 @@ import org.mcsg.plotmaster.Region
 interface LoadFormat {
 
 	
-	void setup(Map settings)
+	void setup(String world, Map settings)
 	
+	
+	Map loadSettings()
 	
 		
 	/**
 	 * Attempts to load the next region
 	 * @return 
 	 */
-	Region nextRegion()
+	Region nextRegion(int index)
 	
 	
 	/*
 	 * Attempts to load the next 'amount' of regions
 	 */
-	List<Region> loadRegionsBulk(int amount)
+	List<Region> loadRegionsBulk(int index, int amount)
 	
 	/**
 	 * Attempts to load the next plotMember
 	 * @return the next plotMember, or null of none exist
 	 */
-	PlotMember nextMember()
+	PlotMember nextMember(int index)
 	
 	/**
 	 * Attempts to load the next 'amount' of plotMemebers
 	 * @return the next plotMembers
 	 */
-	PlotMember loadMembersBulk(int amount)
+	List<PlotMember> loadMembersBulk(int index, int amount)
 	
 	
 
@@ -56,4 +58,6 @@ interface LoadFormat {
 	 */
 	int getAmountOfMembers()
 	
+	
+	void finish()
 }

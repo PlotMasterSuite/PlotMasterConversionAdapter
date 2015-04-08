@@ -64,6 +64,7 @@
 									<includes>org.slf4j:*</includes>
 									<includes>org.javassist:*</includes>
 									<includes>de.greenrobot:*</includes>
+									<includes>org.xerial:*</includes>
 								</includes>
 							</artifactSet>
 						</configuration>
@@ -118,6 +119,11 @@
 			<groupId>de.greenrobot</groupId>
 			<artifactId>eventbus</artifactId>
 			<version>2.0.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.xerial</groupId>
+			<artifactId>sqlite-jdbc</artifactId>
+			<version>3.8.7</version>
 		</dependency>
 	</dependencies>
 </project>
