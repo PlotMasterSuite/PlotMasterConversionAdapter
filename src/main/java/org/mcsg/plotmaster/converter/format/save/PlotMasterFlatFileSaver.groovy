@@ -9,12 +9,12 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type
-
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.mcsg.plotmaster.Plot
 import org.mcsg.plotmaster.PlotMember;
@@ -24,7 +24,7 @@ import org.mcsg.plotmaster.backend.flatfile.FlatFileBackend.XZLoc;
 import org.mcsg.plotmaster.converter.format.SaveFormat
 
 @CompileStatic
-class PlotMasterFlatFile implements SaveFormat{
+class PlotMasterFlatFileSaver implements SaveFormat{
 	
 	
 	File folder
@@ -75,17 +75,17 @@ class PlotMasterFlatFile implements SaveFormat{
 	}
 	
 	
-	int regid = 0
-	int plotid = 0
+	AtomicLong regid = new AtomicLong(0)
+	AtomicLong plotid = new AtomicLong(0)
 	
 	public void saveRegion(int index, Region region) {
 		if(region.id == -1)
-			region.id = regid++
+			region.id = regid.incrementAndGet().toInteger()
 		
 		
 		region.plots.values().each { Plot plot ->
 			if(plot.id == -1)
-				plot.id = plotid++
+				plot.id = plotid.incrementAndGet().toInteger()
 			
 			plotMap.put(plot.id, region.id)
 		}
@@ -129,6 +129,10 @@ class PlotMasterFlatFile implements SaveFormat{
 	public void finish() {
 		regionMapFile.setText(gson.toJson(regionMap))
 		plotMapFile.setText(gson.toJson(plotMap))
+	}
+
+	public boolean supportsThreading() {
+		return true;
 	}
 	
 }

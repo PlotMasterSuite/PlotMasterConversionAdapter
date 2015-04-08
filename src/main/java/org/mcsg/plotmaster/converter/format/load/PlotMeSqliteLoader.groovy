@@ -20,10 +20,11 @@ import org.mcsg.plotmaster.Plot
 import org.mcsg.plotmaster.PlotMember;
 import org.mcsg.plotmaster.Region;
 import org.mcsg.plotmaster.converter.format.LoadFormat
+import org.mcsg.plotmaster.converter.util.AbstractSqlFormat;
 import org.mcsg.plotmaster.converter.util.DefaultSettings;
 
 @CompileStatic
-class PlotMeSQLITE extends AbstractSqlFormat implements LoadFormat {
+class PlotMeSqliteLoader extends AbstractSqlFormat implements LoadFormat {
 	
 	String world
 	Map settings
@@ -32,6 +33,8 @@ class PlotMeSQLITE extends AbstractSqlFormat implements LoadFormat {
 		Class.forName("org.sqlite.JDBC")
 		HikariConfig config = new HikariConfig();
 		config.setJdbcUrl("jdbc:sqlite:plots.db");
+		config.setConnectionTestQuery("SELECT 1")
+		
 		
 		super.setup(config, conf)
 		
@@ -111,6 +114,10 @@ class PlotMeSQLITE extends AbstractSqlFormat implements LoadFormat {
 	public void finish() {
 		// TODO Auto-generated method stub
 		
+	}
+
+	public boolean supportsThreading() {
+		return true;
 	}
 
 

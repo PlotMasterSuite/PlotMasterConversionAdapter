@@ -64,10 +64,13 @@ class ConversionAdapter {
 		
 		println "Converting ${amount} plots..."
 		
-		
-		for(int i = 0; i < THREADS ; i++) {
-			new ConverterThread(i, index, per, amount).start()
-			index += per
+		if(loader.supportsThreading() && saver.supportsThreading()) {
+			for(int i = 0; i < THREADS ; i++) {
+				new ConverterThread(i, index, per, amount).start()
+				index += per
+			}
+		} else {
+			new ConverterThread(1, 1, amount, amount).start()
 		}
 		return prog
 	}
@@ -77,7 +80,7 @@ class ConversionAdapter {
 		int i
 		int index
 		int per
-		int amount 
+		int amount
 		
 		public ConverterThread(int i, int index, int per, int amount) {
 			this.i = i
@@ -88,9 +91,9 @@ class ConversionAdapter {
 		
 		public void run() {
 			if(i == THREADS - 1)
-				convertRegions(index, amount - index)
+				convertRegions(index, amount - index + 1)
 			else
-				convertRegions(index, per)
+				convertRegions(index, per - 1)
 			
 			//convertMembers()
 			
@@ -115,10 +118,10 @@ class ConversionAdapter {
 	}
 	
 	protected convertRegions(int index, int amount) {
-		int am = 500
+		int am = 50
 		int till = index + amount
 		
-		//println "$index, $amount, $am, $till"
+		println "$index, $amount, $am, $till"
 		
 		def loadRegionGroup = {
 			if(loadBulk){

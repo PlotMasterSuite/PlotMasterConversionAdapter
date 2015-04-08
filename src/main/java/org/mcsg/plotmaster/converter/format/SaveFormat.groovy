@@ -40,6 +40,12 @@ interface SaveFormat {
 	 */
 	boolean supportsBulk()
 	
+	/**
+	 * 
+	 * @return true if supports threading
+	 */
+	boolean supportsThreading()
+	
 	
 	void finish()
 }

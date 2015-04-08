@@ -1,4 +1,4 @@
-package org.mcsg.plotmaster.converter.format.load
+package org.mcsg.plotmaster.converter.util
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
@@ -14,7 +14,6 @@ class AbstractSqlFormat {
 		config.addDataSourceProperty("prepStmtCacheSize", "250");
 		config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
 		config.addDataSourceProperty("useServerPrepStmts", "true");
-		config.setConnectionTestQuery("SELECT 1")
 		ds = new HikariDataSource(config);
 	}
 	
