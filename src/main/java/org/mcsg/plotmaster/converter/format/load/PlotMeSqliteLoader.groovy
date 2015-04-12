@@ -54,8 +54,9 @@ class PlotMeSqliteLoader extends AbstractSqlFormat implements LoadFormat {
 	@CompileStatic(TypeCheckingMode.SKIP)
 	public List<Region> loadRegionsBulk(int index, int amount) {
 		def list = new ArrayList<Region>()
+		def sql = getSql()
 		
-		getSql().eachRow("SELECT * FROM plotmePlots WHERE world=${world} LIMIT ${index},${amount}") {
+		sql.eachRow("SELECT * FROM plotmePlots WHERE world=${world} LIMIT ${index},${amount}") {
 			Region r = new Region(x: it.bottomX, z: it.bottomZ, w: settings.grid.width,
 			h: settings.grid.height, world: world)
 			
@@ -77,6 +78,8 @@ class PlotMeSqliteLoader extends AbstractSqlFormat implements LoadFormat {
 		}
 	//	println "$index, $amount, ${list.size()}"
 		
+		sql.close()
+		
 		return list;
 	}
 	
@@ -95,7 +98,15 @@ class PlotMeSqliteLoader extends AbstractSqlFormat implements LoadFormat {
 	}
 	
 	public List<PlotMember> loadMembersBulk(int index, int amount) {
-		return new ArrayList<>();
+		def list = new ArrayList<Region>()
+		def sql = getSql()
+		
+		sql.eachRow("SELECT * FROM plotmeAllowed INNER JOIN plotmeDenied LIMIT 5") {
+			println it
+		}
+		
+		System.exit(0)
+		
 	}
 	
 	public boolean supportsBulk() {

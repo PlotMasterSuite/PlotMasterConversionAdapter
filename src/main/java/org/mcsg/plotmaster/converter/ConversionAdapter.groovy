@@ -95,7 +95,7 @@ class ConversionAdapter {
 			else
 				convertRegions(index, per - 1)
 			
-			//convertMembers()
+			convertMembers()
 			
 			
 			eventbus.post(new ConverterFinishedEvent(id: i, index: index))
@@ -121,7 +121,7 @@ class ConversionAdapter {
 		int am = 50
 		int till = index + amount
 		
-		println "$index, $amount, $am, $till"
+		//println "$index, $amount, $am, $till"
 		
 		def loadRegionGroup = {
 			if(loadBulk){
@@ -163,17 +163,17 @@ class ConversionAdapter {
 		}
 	}
 	
-	private convertMembers() {
-		prog.setMax(loader.getAmountOfMembers())
-		prog.setMessage("Converting Users...")
+	private convertMembers(int index, int amount) {
+		int am = 50
+		int till = index + amount
 		
 		def loadMemberGroup = {
 			if(loadBulk){
-				return loader.loadMembersBulk(50)
+				return loader.loadMembersBulk(index, (am < till)? am : am - (am - till))
 			} else {
 				List<PlotMember> members = []
-				for(a in [0..50]) {
-					PlotMember r = loader.nextMember()
+				for(a in [0..(am < till)? am : am - (am - till)]) {
+					PlotMember r = loader.nextMember(index + a)
 					if(r){
 						members.add(r)
 					} else {
@@ -186,10 +186,10 @@ class ConversionAdapter {
 		
 		def saveMemberGroup = { List<PlotMember> members ->
 			if(saveBulk){
-				saver.saveMembersBulk(members)
+				saver.saveMembersBulk(index, members)
 			} else {
-				members.each {
-					saver.saveRegion(it)
+				members.eachWithIndex { member, i ->
+					saver.saveMember(index + i, member)
 				}
 			}
 		}
@@ -197,7 +197,8 @@ class ConversionAdapter {
 		
 		List<Region> members
 		
-		while((members = loadMemberGroup())) {
+		while(index < till) {
+			members = loadMemberGroup()
 			if(members.size() == 0){
 				break
 			}

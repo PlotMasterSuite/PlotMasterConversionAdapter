@@ -17,6 +17,8 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.mcsg.plotmaster.Plot
+import org.mcsg.plotmaster.Plot.AccessMode;
+import org.mcsg.plotmaster.AccessLevel
 import org.mcsg.plotmaster.PlotMember;
 import org.mcsg.plotmaster.Region;
 import org.mcsg.plotmaster.backend.flatfile.FlatFileBackend
@@ -87,6 +89,8 @@ class PlotMasterFlatFileSaver implements SaveFormat{
 			if(plot.id == -1)
 				plot.id = plotid.incrementAndGet().toInteger()
 			
+			plot.accessMap.put(plot.ownerUUID, AccessLevel.OWNER)
+				
 			plotMap.put(plot.id, region.id)
 		}
 		
