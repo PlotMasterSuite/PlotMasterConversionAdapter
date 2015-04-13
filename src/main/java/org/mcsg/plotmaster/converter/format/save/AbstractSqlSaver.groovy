@@ -13,6 +13,7 @@ import javax.sql.DataSource;
 import org.mcsg.plotmaster.Plot
 import org.mcsg.plotmaster.PlotMember;
 import org.mcsg.plotmaster.Region;
+import org.mcsg.plotmaster.PlotMember.PlotInfo
 import org.mcsg.plotmaster.converter.format.SaveFormat
 import org.mcsg.plotmaster.converter.util.AbstractSqlFormat
 
@@ -74,17 +75,27 @@ abstract class AbstractSqlSaver extends AbstractSqlFormat implements SaveFormat 
 	}
 	
 	public void saveMembersBulk(int index, List<PlotMember> members) {
-		// TODO Auto-generated method stub
+		Sql sql = getSql()
 		
+		sql.withTransaction {
+			sql.withBatch("INSERT INTO ${access_list} (id, uuid, name, level, plot)  VALUES(NULL, ?, ?,?,?)"){ ps ->
+				members.each { mem ->
+					mem.getPlotAccessMap().each { key, List<PlotInfo>val ->
+						val.each{
+							ps.addBatch([mem.uuid, mem.name, key, it.getId()])
+						}
+					}
+				}
+			}
+			
+		}
 	}
 	
 	public boolean supportsBulk() {
 		return true;
 	}
 	
-	Sql getSql(){
-		new Sql(ds)
-	}
+	
 	
 	
 }
