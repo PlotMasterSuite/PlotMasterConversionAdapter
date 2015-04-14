@@ -107,9 +107,14 @@ class PlotMasterFlatFileSaver implements SaveFormat{
 		
 	}
 	
+	
+	
 	public void saveMember(int index, PlotMember member) {
+		def file = new File(userFolder, member.getUuid()+".json")
 		
+		def json = gson.toJson(member)
 		
+		file.setText(json)		
 	}
 	
 	public void saveMembersBulk(List<PlotMember> members) {

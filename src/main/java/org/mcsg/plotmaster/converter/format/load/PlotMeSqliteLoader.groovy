@@ -101,7 +101,7 @@ class PlotMeSqliteLoader extends AbstractSqlFormat implements LoadFormat {
 		def list = new ArrayList<Region>()
 		def sql = getSql()
 		
-		sql.eachRow("SELECT * FROM plotmeAllowed INNER JOIN plotmeDenied LIMIT 5") {
+		sql.eachRow("SELECT * FROM plotmeAllowed INNER JOIN plotmeDenied ON plotmeAllowed.playerid=plotmeDenied.playerid LIMIT 5") {
 			println it
 		}
 		
