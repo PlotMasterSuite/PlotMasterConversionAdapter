@@ -14,9 +14,11 @@ import java.nio.ByteBuffer
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.sql.DataSource;
 
+import org.mcsg.plotmaster.AccessLevel;
 import org.mcsg.plotmaster.Plot
 import org.mcsg.plotmaster.PlotMember;
 import org.mcsg.plotmaster.Region;
@@ -34,9 +36,12 @@ class PlotMeSqliteLoader extends AbstractSqlFormat implements LoadFormat {
 	//so we can complete that for plotme
 	Map<String, String> uuidmap
 	
+	Map<String, Integer> xzMap = new ConcurrentHashMap<>()
 	
-	ArrayList<String> players
 	
+	int allowed
+	int denied
+	int owners
 	
 	public void setup(String world, Map conf) {
 		Class.forName("org.sqlite.JDBC")
@@ -52,27 +57,13 @@ class PlotMeSqliteLoader extends AbstractSqlFormat implements LoadFormat {
 		
 		uuidmap = new ConcurrentHashMap<>()
 		
-		//players = Collections.synchronizedList(new ArrayList<String>())
-		/*def temp = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>())
-		
 		Sql sql = getSql()
 		
-		int id = 0
-		sql.eachRow("SELECT player, playerid FROM plotmeAllowed") {
-			if(it.playerid) {
-				temp.add(++id, fromBytes(it.playerid).toString())
-				uuidmap.put(it.player, it.playerid)
-			}
-		}
-		sql.eachRow("SELECT player, playerid FROM plotmeDenied") {
-			if(it.playerid) {
-				temp.add(++id, fromBytes(it.playerid).toString())
-				uuidmap.put(it.player, it.playerid)
-			}
-		}
+		allowed = sql.firstRow("SELECT count(*) AS amount FROM plotmeAllowed WHERE world=${world}").amount
+		denied = sql.firstRow("SELECT count(*) AS amount FROM plotmeDenied WHERE world=${world}").amount
+		owners = sql.firstRow("SELECT COUNT(*) as amount FROM plotmePlots WHERE world=${world}").amount;
 		
-		players.addAll(temp)*/
-		
+		sql.close()
 	}
 	
 	public Map loadSettings() {
@@ -83,6 +74,8 @@ class PlotMeSqliteLoader extends AbstractSqlFormat implements LoadFormat {
 		return null;
 	}
 	
+	AtomicLong regid = new AtomicLong(0)
+	AtomicLong plotid = new AtomicLong(0)
 	
 	@CompileStatic(TypeCheckingMode.SKIP)
 	public List<Region> loadRegionsBulk(int index, int amount) {
@@ -90,10 +83,10 @@ class PlotMeSqliteLoader extends AbstractSqlFormat implements LoadFormat {
 		def sql = getSql()
 		
 		sql.eachRow("SELECT * FROM plotmePlots WHERE world=${world} LIMIT ${index},${amount}") {
-			Region r = new Region(x: it.bottomX, z: it.bottomZ, w: settings.grid.width,
+			Region r = new Region(id: regid.getAndIncrement(), x: it.bottomX, z: it.bottomZ, w: settings.grid.width,
 			h: settings.grid.height, world: world)
 			
-			Plot p = new Plot(region: r, x: it.bottomX, z: it.bottomZ, w: settings.grid.width,
+			Plot p = new Plot(id: plotid.getAndIncrement(), region: r, x: it.bottomX, z: it.bottomZ, w: settings.grid.width,
 			h: settings.grid.height, world: world, ownerName: it.owner)
 			
 			//wtf plotme lol
@@ -104,15 +97,13 @@ class PlotMeSqliteLoader extends AbstractSqlFormat implements LoadFormat {
 			}
 			
 			r.plots.put(p.id, p)
-			
+			xzMap.put("${it.idX}:${it.idZ}", p.getId())
 			
 			list.add(r)
 			index++
 		}
-		//	println "$index, $amount, ${list.size()}"
 		
 		sql.close()
-		
 		return list;
 	}
 	
@@ -131,14 +122,58 @@ class PlotMeSqliteLoader extends AbstractSqlFormat implements LoadFormat {
 	}
 	
 	public List<PlotMember> loadMembersBulk(int index, int amount) {
-		def list = new ArrayList<Region>()
 		def sql = getSql()
 		
-		sql.eachRow("SELECT * FROM plotmeAllowed INNER JOIN plotmeDenied ON plotmeAllowed.playerid=plotmeDenied.playerid LIMIT ${index},${amount}") {
-			println it
+		def map = [:]
+		
+		int am = 0
+		while(am < amount && am + index < getAmountOfMembers()) {
+			if(index <= allowed) {
+				//println "SELECT * FROM plotmeAllowed  WHERE world=${world} ORDER BY player LIMIT ${index},${amount - am}"
+				sql.eachRow("SELECT * FROM plotmeAllowed  WHERE world=${world} ORDER BY player LIMIT ${index},${amount - am}") {
+					if(it.player){
+						PlotMember member = map.get(it.player) ?: new PlotMember(name: it.player,uuid: (it.playerid)? fromBytes(it.playerid) : "")
+						if(xzMap.get("${it.idX}:${it.idZ}")) {
+							member.getPlotAccessMap().put(xzMap.get("${it.idX}:${it.idZ}"), AccessLevel.MEMBER)
+						}
+						map.put(it.player, member)
+						am++
+					}
+				}
+			} else if(index > allowed && index < allowed + denied){
+				index -= allowed
+				//println "SELECT * FROM plotmeDenied WHERE world=${world}  ORDER BY player LIMIT ${index},${amount - am}"
+				sql.eachRow("SELECT * FROM plotmeDenied WHERE world=${world}  ORDER BY player LIMIT ${index},${amount - am}") {
+					if(it.player) {
+						PlotMember member = map.get(it.player) ?: new PlotMember(name: it.player,  uuid: (it.playerid)? fromBytes(it.playerid) : "")
+						if(xzMap.get("${it.idX}:${it.idZ}")) {
+							member.getPlotAccessMap().put(xzMap.get("${it.idX}:${it.idZ}"), AccessLevel.DENY)
+						}
+						map.put(it.player, member)
+						am++
+					}
+				}
+			} else {
+				index -= allowed + denied
+				//println "SELECT * FROM plotmePlots WHERE world=${world} ORDER BY owner LIMIT ${index},${amount - am}"
+				sql.eachRow("SELECT * FROM plotmePlots WHERE world=${world} ORDER BY owner LIMIT ${index},${amount - am}") {
+					if(it.owner) {
+						PlotMember member = map.get(it.owner) ?: new PlotMember(name: it.owner, uuid: (it.ownerid)? fromBytes(it.ownerid) : "")
+						if(xzMap.get("${it.idX}:${it.idZ}")) {
+							member.getPlotAccessMap().put(xzMap.get("${it.idX}:${it.idZ}"), AccessLevel.OWNER)
+						}
+						map.put(it.owner, member)
+						am++
+					}
+				}
+			}
 		}
 		
-		//System.exit(0)
+		if(am == 0)
+		println "AM  IS 0, INDEX IS $index"
+		
+		sql.close()
+		return new ArrayList(map.values())
 		
 	}
 	
@@ -148,12 +183,11 @@ class PlotMeSqliteLoader extends AbstractSqlFormat implements LoadFormat {
 	
 	@CompileStatic(TypeCheckingMode.SKIP)
 	public int getAmountOfRegions() {
-		return getSql().firstRow("SELECT COUNT(*) as amount FROM plotmePlots WHERE world=${world}").amount;
+		return owners
 	}
 	
 	public int getAmountOfMembers() {
-		return 0
-		//return getSql().firstRow("SELECT COUNT(*) as amount FROM plotmeAllowed WHERE world=${world}");
+		return allowed + denied + owners
 	}
 	
 	public void finish() {

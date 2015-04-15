@@ -14,7 +14,7 @@ import com.google.common.eventbus.Subscribe;
 
 class ConversionAdapter {
 	
-	private static int THREADS = 8
+	private static int THREADS = 4
 	private static boolean thread = true
 	LoadFormat loader
 	SaveFormat saver
@@ -70,6 +70,8 @@ class ConversionAdapter {
 		println "Converting ${plotAmount} plots and $memberAmount members.."
 		
 		Thread.start{
+			prog.setMessage("Converting regions...")
+			
 			if(loader.supportsPlotThreading() && saver.supportsPlotThreading() && thread) {
 				for(int i = 0; i < THREADS ; i++) {
 					new ConverterThread(i, plotIndex, false).start()
@@ -84,6 +86,11 @@ class ConversionAdapter {
 				wait.wait()
 			}
 			
+			tdone = 0
+			prog.setMessage("Converting member...")
+			prog.setMax(memberAmount)
+			prog.setProgress(0)
+			
 			if(loader.supportsMemberThreading() && saver.supportsMemberThreading() && thread) {
 				for(int i = 0; i < THREADS ; i++) {
 					new ConverterThread(i, memberIndex, true).start()
@@ -93,6 +100,12 @@ class ConversionAdapter {
 				THREADS = 1
 				new ConverterThread(1, 1, true).start()
 			}
+			
+			synchronized (wait) {
+				wait.wait()
+			}
+			
+			prog.setMessage("Finishing conversion...")
 			
 			loader.finish()
 			saver.finish()
@@ -108,9 +121,11 @@ class ConversionAdapter {
 		boolean members
 		
 		public ConverterThread(int i, int index, boolean members) {
+			super.setName("PlotMaster Converter $index,$members")
 			this.i = i
 			this.index = index
 			this.members = members
+			//println "$i,$index"
 		}
 		
 		public void run() {
@@ -126,9 +141,6 @@ class ConversionAdapter {
 				else
 					convertMembers(index, memberPer - 1)
 			}
-			
-			
-			
 			eventbus.post(new ConverterFinishedEvent(id: i, index: index))
 		}
 		
@@ -141,16 +153,17 @@ class ConversionAdapter {
 		
 		tdone++
 		if(tdone == THREADS) {
-			wait.notify()
+			synchronized (wait) {
+				wait.notify()
+			}
 		}
 	}
 	
 	protected convertRegions(int index, int amount) {
-		prog.setMessage("Converting regions...")
 		int am = 50
 		int till = index + amount
 		
-		//println "$index, $amount, $am, $till"
+		println "$index, $amount, $am, $till"
 		
 		def loadRegionGroup = {
 			if(loadBulk){
@@ -192,11 +205,12 @@ class ConversionAdapter {
 		}
 	}
 	
-	private convertMembers(int index, int amount) {
-		prog.setMessage("Converting members...")
-		
-		int am = 50
+	private convertMembers(int index, int amount) {		
+		int am = 500
 		int till = index + amount
+		
+		println "$index, $amount, $am, $till"
+		
 		
 		def loadMemberGroup = {
 			if(loadBulk){
@@ -230,12 +244,14 @@ class ConversionAdapter {
 		
 		while(index < till) {
 			members = loadMemberGroup()
-			if(members.size() == 0){
+			if(members.size() < 0){
 				break
 			}
 			saveMemberGroup(members)
-			prog.incProgress(members.size())
+			prog.incProgress(am)
+			index += am
 		}
+		println "THREAD IS DYING $index"
 	}
 	
 	

@@ -77,27 +77,16 @@ class PlotMasterFlatFileSaver implements SaveFormat{
 	}
 	
 	
-	AtomicLong regid = new AtomicLong(0)
-	AtomicLong plotid = new AtomicLong(0)
+	
 	
 	public void saveRegion(int index, Region region) {
-		if(region.id == -1)
-			region.id = regid.incrementAndGet().toInteger()
-		
-		
 		region.plots.values().each { Plot plot ->
-			if(plot.id == -1)
-				plot.id = plotid.incrementAndGet().toInteger()
-			
 			plot.accessMap.put(plot.ownerUUID, AccessLevel.OWNER)
-				
 			plotMap.put(plot.id, region.id)
 		}
-		
 		regionMap.put(region.id, new XZLoc(x: region.x, z: region.z))
 		
 		def file = new File(regionFolder, "${region.x}.${region.z}.rg")
-		
 		file.createNewFile()
 		file.setText(gson.toJson(region))
 		
@@ -108,13 +97,15 @@ class PlotMasterFlatFileSaver implements SaveFormat{
 	}
 	
 	
-	
-	public void saveMember(int index, PlotMember member) {
-		def file = new File(userFolder, member.getUuid()+".json")
-		
-		def json = gson.toJson(member)
-		
-		file.setText(json)		
+	Map<String, PlotMember> memberCache = new ConcurrentHashMap<>()
+	public void saveMember(int index, PlotMember member) {		
+		if(memberCache.containsKey(member.uuid)) {
+			PlotMember existing = memberCache.get(member.uuid)
+			existing.getPlotAccessMap().putAll(member.getPlotAccessMap())
+			member = existing
+		}
+
+		memberCache.put(member.uuid, member)
 	}
 	
 	public void saveMembersBulk(List<PlotMember> members) {
@@ -138,8 +129,14 @@ class PlotMasterFlatFileSaver implements SaveFormat{
 	public void finish() {
 		regionMapFile.setText(gson.toJson(regionMap))
 		plotMapFile.setText(gson.toJson(plotMap))
+		
+		memberCache.each {key, val ->
+			def file = new File(userFolder, key+".json")
+			def json = gson.toJson(val)
+			file.setText(json)
+		}
 	}
-
+	
 	public boolean supportsPlotThreading() {
 		return true;
 	}
