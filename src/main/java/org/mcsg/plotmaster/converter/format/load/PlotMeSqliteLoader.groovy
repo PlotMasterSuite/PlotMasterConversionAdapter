@@ -13,6 +13,7 @@ import java.lang.invoke.LambdaForm.Compiled;
 import java.nio.ByteBuffer
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
@@ -23,11 +24,19 @@ import org.mcsg.plotmaster.converter.format.LoadFormat
 import org.mcsg.plotmaster.converter.util.AbstractSqlFormat;
 import org.mcsg.plotmaster.converter.util.DefaultSettings;
 
-@CompileStatic
 class PlotMeSqliteLoader extends AbstractSqlFormat implements LoadFormat {
 	
 	String world
 	Map settings
+	
+	//for whatever reason, PlotMe doesn't update half the users plots
+	//when converting to uuid's. We'll keep a map of players uuid's here
+	//so we can complete that for plotme
+	Map<String, String> uuidmap
+	
+	
+	ArrayList<String> players
+	
 	
 	public void setup(String world, Map conf) {
 		Class.forName("org.sqlite.JDBC")
@@ -40,6 +49,30 @@ class PlotMeSqliteLoader extends AbstractSqlFormat implements LoadFormat {
 		
 		this.world = world
 		loadSettings()
+		
+		uuidmap = new ConcurrentHashMap<>()
+		
+		//players = Collections.synchronizedList(new ArrayList<String>())
+		/*def temp = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>())
+		
+		Sql sql = getSql()
+		
+		int id = 0
+		sql.eachRow("SELECT player, playerid FROM plotmeAllowed") {
+			if(it.playerid) {
+				temp.add(++id, fromBytes(it.playerid).toString())
+				uuidmap.put(it.player, it.playerid)
+			}
+		}
+		sql.eachRow("SELECT player, playerid FROM plotmeDenied") {
+			if(it.playerid) {
+				temp.add(++id, fromBytes(it.playerid).toString())
+				uuidmap.put(it.player, it.playerid)
+			}
+		}
+		
+		players.addAll(temp)*/
+		
 	}
 	
 	public Map loadSettings() {
@@ -76,7 +109,7 @@ class PlotMeSqliteLoader extends AbstractSqlFormat implements LoadFormat {
 			list.add(r)
 			index++
 		}
-	//	println "$index, $amount, ${list.size()}"
+		//	println "$index, $amount, ${list.size()}"
 		
 		sql.close()
 		
@@ -101,11 +134,11 @@ class PlotMeSqliteLoader extends AbstractSqlFormat implements LoadFormat {
 		def list = new ArrayList<Region>()
 		def sql = getSql()
 		
-		sql.eachRow("SELECT * FROM plotmeAllowed INNER JOIN plotmeDenied ON plotmeAllowed.playerid=plotmeDenied.playerid LIMIT 5") {
+		sql.eachRow("SELECT * FROM plotmeAllowed INNER JOIN plotmeDenied ON plotmeAllowed.playerid=plotmeDenied.playerid LIMIT ${index},${amount}") {
 			println it
 		}
 		
-		System.exit(0)
+		//System.exit(0)
 		
 	}
 	
@@ -119,18 +152,23 @@ class PlotMeSqliteLoader extends AbstractSqlFormat implements LoadFormat {
 	}
 	
 	public int getAmountOfMembers() {
-		return 0;
+		return 0
+		//return getSql().firstRow("SELECT COUNT(*) as amount FROM plotmeAllowed WHERE world=${world}");
 	}
-
+	
 	public void finish() {
 		// TODO Auto-generated method stub
 		
 	}
-
-	public boolean supportsThreading() {
+	
+	public boolean supportsPlotThreading() {
 		return true;
 	}
-
-
+	
+	
+	public boolean supportsMemberThreading() {
+		return true;
+	}
+	
 	
 }

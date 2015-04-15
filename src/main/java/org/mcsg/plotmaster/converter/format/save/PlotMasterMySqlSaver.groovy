@@ -66,17 +66,16 @@ class PlotMasterMySqlSaver extends AbstractSqlSaver{
 		sql.close()
 	}
 	
-	
-	
-	public void finish() {
-		
-		
-	}
 
 
 
-	public boolean supportsThreading() {
+
+	public boolean supportsPlotThreading() {
 		return true;
+	}
+	
+	public boolean supportsMemberThreading() {
+		return true
 	}
 	
 }

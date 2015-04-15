@@ -96,6 +96,8 @@ abstract class AbstractSqlSaver extends AbstractSqlFormat implements SaveFormat 
 	}
 	
 	
-	
+	public void finish() {
+		
+	}
 	
 }

@@ -64,19 +64,17 @@ class PlotMasterSqliteSave extends AbstractSqlSaver{
 	}
 	
 	
-	
-	
-	
-	public void finish() {
-		// TODO Auto-generated method stub
-		
+
+
+
+
+
+
+	public boolean supportsPlotThreading() {
+		return false;
 	}
-
-
-
-
-
-	public boolean supportsThreading() {
+	
+	public boolean supportsMemberThreading() {
 		return false;
 	}
 	

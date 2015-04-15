@@ -47,8 +47,10 @@ interface LoadFormat {
 	boolean supportsBulk()
 	
 	
-	boolean supportsThreading()
+	boolean supportsPlotThreading()
 	
+	
+	boolean supportsMemberThreading()
 	/**
 	 * Attempt to retrieve the number of regions to load
 	 * @return the amount, -1 if it cannot be calculated

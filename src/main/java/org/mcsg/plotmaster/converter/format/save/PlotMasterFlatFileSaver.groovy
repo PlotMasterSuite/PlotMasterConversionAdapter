@@ -140,8 +140,12 @@ class PlotMasterFlatFileSaver implements SaveFormat{
 		plotMapFile.setText(gson.toJson(plotMap))
 	}
 
-	public boolean supportsThreading() {
+	public boolean supportsPlotThreading() {
 		return true;
+	}
+	
+	public boolean supportsMemberThreading() {
+		return true
 	}
 	
 }

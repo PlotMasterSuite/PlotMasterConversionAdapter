@@ -44,8 +44,9 @@ interface SaveFormat {
 	 * 
 	 * @return true if supports threading
 	 */
-	boolean supportsThreading()
+	boolean supportsPlotThreading()
 	
+	boolean supportsMemberThreading()
 	
 	void finish()
 }
