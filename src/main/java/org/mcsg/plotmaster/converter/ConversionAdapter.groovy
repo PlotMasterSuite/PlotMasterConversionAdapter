@@ -1,5 +1,7 @@
 package org.mcsg.plotmaster.converter
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import groovy.transform.CompileStatic;
 
 import org.mcsg.plotmaster.PlotMember
@@ -51,7 +53,9 @@ class ConversionAdapter {
 	int plotAmount, plotPer, plotIndex,
 	memberAmount, memberPer, memberIndex
 	
-	int started = 0
+	AtomicInteger started = new AtomicInteger(0)
+	AtomicInteger tdone = new AtomicInteger(0
+		)
 	public Progress beginConversion(){
 		
 		plotAmount = loader.getAmountOfRegions()
@@ -87,8 +91,8 @@ class ConversionAdapter {
 				wait.wait()
 			}
 			
-			tdone = 0
-			started = 0
+			tdone.set(0)
+			started.set(0)
 			prog.setMessage("Converting members...")
 			prog.setMax(memberAmount)
 			prog.setProgress(0)
@@ -130,7 +134,7 @@ class ConversionAdapter {
 		}
 		
 		public void run() {
-			started++
+			started.incrementAndGet()
 			
 			if(last) {
 				if(!members)
@@ -149,13 +153,13 @@ class ConversionAdapter {
 		
 	}
 	
-	int tdone = 0
 	@Subscribe
 	void listenForFinish(ConverterFinishedEvent e) {
 		//println "Thread ${e.getId()} complete, index ${e.index}"
 		
-		tdone++
-		if(tdone == started) {
+		
+		println "${tdone.get() + 1}, ${started.get()}"
+		if(tdone.incrementAndGet() == started.get()) {
 			synchronized (wait) {
 				wait.notify()
 			}

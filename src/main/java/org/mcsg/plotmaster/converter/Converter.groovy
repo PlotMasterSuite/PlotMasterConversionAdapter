@@ -55,11 +55,9 @@ class Converter {
 		}
 		
 		p.waitForFinish()
-
-		
-		
 		double finish = ((long)((System.currentTimeMillis() - time) / 100)) / 10.0
 		
+		lab.setText("Finised")
 		
 		println "${finish} seconds"
 		
