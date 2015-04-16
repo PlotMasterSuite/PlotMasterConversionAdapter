@@ -50,6 +50,8 @@ class ConversionAdapter {
 	
 	int plotAmount, plotPer, plotIndex,
 	memberAmount, memberPer, memberIndex
+	
+	int started = 0
 	public Progress beginConversion(){
 		
 		plotAmount = loader.getAmountOfRegions()
@@ -74,12 +76,11 @@ class ConversionAdapter {
 			
 			if(loader.supportsPlotThreading() && saver.supportsPlotThreading() && thread) {
 				for(int i = 0; i < THREADS ; i++) {
-					new ConverterThread(i, plotIndex, false).start()
+					new ConverterThread(i, plotIndex, false, (i == THREADS -1)).start()
 					plotIndex += plotPer
 				}
 			} else {
-				THREADS = 1
-				new ConverterThread(1, 1, false).start()
+				new ConverterThread(0, 0, false, true).start()
 			}
 			
 			synchronized (wait) {
@@ -87,18 +88,18 @@ class ConversionAdapter {
 			}
 			
 			tdone = 0
-			prog.setMessage("Converting member...")
+			started = 0
+			prog.setMessage("Converting members...")
 			prog.setMax(memberAmount)
 			prog.setProgress(0)
 			
 			if(loader.supportsMemberThreading() && saver.supportsMemberThreading() && thread) {
 				for(int i = 0; i < THREADS ; i++) {
-					new ConverterThread(i, memberIndex, true).start()
+					new ConverterThread(i, memberIndex, true, (i == THREADS -1)).start()
 					memberIndex += memberPer
 				}
 			} else {
-				THREADS = 1
-				new ConverterThread(1, 1, true).start()
+				new ConverterThread(0, 0, true, true).start()
 			}
 			
 			synchronized (wait) {
@@ -119,17 +120,19 @@ class ConversionAdapter {
 		int i
 		int index
 		boolean members
-		
-		public ConverterThread(int i, int index, boolean members) {
+		boolean last
+		public ConverterThread(int i, int index, boolean members, boolean last) {
 			super.setName("PlotMaster Converter $index,$members")
 			this.i = i
 			this.index = index
 			this.members = members
-			//println "$i,$index"
+			this.last = last
 		}
 		
 		public void run() {
-			if(i == THREADS - 1) {
+			started++
+			
+			if(last) {
 				if(!members)
 					convertRegions(index, plotAmount - index + 1)
 				else
@@ -152,7 +155,7 @@ class ConversionAdapter {
 		//println "Thread ${e.getId()} complete, index ${e.index}"
 		
 		tdone++
-		if(tdone == THREADS) {
+		if(tdone == started) {
 			synchronized (wait) {
 				wait.notify()
 			}
@@ -160,7 +163,7 @@ class ConversionAdapter {
 	}
 	
 	protected convertRegions(int index, int amount) {
-		int am = 50
+		int am = 500
 		int till = index + amount
 		
 		println "$index, $amount, $am, $till"

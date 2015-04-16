@@ -16,7 +16,6 @@ class Converter {
 	
 	
 	static main(args) {
-		
 		Map settings = [
 			
 			load: [ :

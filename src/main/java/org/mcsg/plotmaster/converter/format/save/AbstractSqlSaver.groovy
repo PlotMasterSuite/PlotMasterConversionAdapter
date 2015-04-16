@@ -51,8 +51,6 @@ abstract class AbstractSqlSaver extends AbstractSqlFormat implements SaveFormat 
 				}
 			}
 			
-			sql.commit()
-			
 			
 			sql.withBatch("""INSERT INTO ${plots} (id, region, world, name, owner, uuid, x, z, h, w, createdAt, type, accessmode, settings, metadata)
 			VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""".toString()) { ps ->
@@ -80,12 +78,14 @@ abstract class AbstractSqlSaver extends AbstractSqlFormat implements SaveFormat 
 			sql.withBatch("INSERT INTO ${access_list} (id, uuid, name, level, plot)  VALUES(NULL, ?, ?,?,?)"){ ps ->
 				members.each { mem ->
 					mem.getPlotAccessMap().each { key, value ->
-						ps.addBatch([mem.uuid, mem.name, value, key])
+						if(mem.name.length() <= 16)
+							ps.addBatch([mem.uuid, mem.name, value.toString(), key])
 					}
 				}
 			}
 			
 		}
+		sql.close()
 	}
 	
 	public boolean supportsBulk() {

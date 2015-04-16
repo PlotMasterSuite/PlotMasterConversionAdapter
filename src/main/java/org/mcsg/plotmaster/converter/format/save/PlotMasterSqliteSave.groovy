@@ -52,7 +52,7 @@ class PlotMasterSqliteSave extends AbstractSqlSaver{
 				 `id` INTEGER PRIMARY KEY,
 				 `uuid` TEXT,
 				 `name` TEXT,
-				 `type` TEXT,
+				 `level` TEXT,
 				 `plot` INTEGER
 			);
 		""".toString())
