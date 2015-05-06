@@ -68,6 +68,10 @@ class PlotMeSqliteLoader extends AbstractSqlFormat implements LoadFormat {
 		sql.close()
 	}
 	
+	public Map getSettings() {
+		
+	}
+	
 	public Map loadSettings() {
 		settings = DefaultSettings.getWorld("world")
 	}

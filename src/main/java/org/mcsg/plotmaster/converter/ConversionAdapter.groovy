@@ -40,9 +40,6 @@ class ConversionAdapter {
 		this.loader = loader
 		this.saver = saver
 		
-		loader.setup("creative", settings.load)
-		saver.setup("world", settings.save)
-		
 		loadBulk = loader.supportsBulk()
 		saveBulk = saver.supportsBulk()
 		

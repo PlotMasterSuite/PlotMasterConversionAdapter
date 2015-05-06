@@ -9,6 +9,9 @@ interface LoadFormat {
 	void setup(String world, Map settings)
 	
 	
+	Map getSettings()
+	
+	
 	Map loadSettings()
 	
 		

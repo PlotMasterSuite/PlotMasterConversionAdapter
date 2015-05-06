@@ -1,5 +1,7 @@
 package org.mcsg.plotmaster.converter.format.save
 
+import java.util.Map;
+
 import com.zaxxer.hikari.HikariConfig
 
 class PlotMasterSqliteSave extends AbstractSqlSaver{
@@ -76,6 +78,18 @@ class PlotMasterSqliteSave extends AbstractSqlSaver{
 	
 	public boolean supportsMemberThreading() {
 		return false;
+	}
+
+
+
+
+
+
+
+
+	public Map getSettings() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 }

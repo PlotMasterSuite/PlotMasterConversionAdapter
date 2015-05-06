@@ -9,6 +9,8 @@ interface SaveFormat {
 	void setup(String world, Map settings)
 	
 	
+	Map getSettings()
+	
 	/**
 	 * Save a region
 	 * @param region

@@ -144,5 +144,13 @@ class PlotMasterFlatFileSaver implements SaveFormat{
 	public boolean supportsMemberThreading() {
 		return true
 	}
+
+
+
+
+	public Map getSettings() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 	
 }
