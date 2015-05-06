@@ -18,11 +18,13 @@ class Converter {
 	static main(args) {
 		Map settings = [
 			
-			load: [ :
-				 
+			load: [ 
+				 width : 99,
+				 border: 4
 			],
 			save: [
-				location: "plots/"
+				location: "plots/",
+				debug: true
 			]
 		]
 		

@@ -43,13 +43,14 @@ class PlotMeSqliteLoader extends AbstractSqlFormat implements LoadFormat {
 	int denied
 	int owners
 	
+	int bw
+	int w
+	
 	public void setup(String world, Map conf) {
 		Class.forName("org.sqlite.JDBC")
 		HikariConfig config = new HikariConfig();
 		config.setJdbcUrl("jdbc:sqlite:plots.db");
 		config.setConnectionTestQuery("SELECT 1")
-		
-		
 		super.setup(config, conf)
 		
 		this.world = world
@@ -57,12 +58,13 @@ class PlotMeSqliteLoader extends AbstractSqlFormat implements LoadFormat {
 		
 		uuidmap = new ConcurrentHashMap<>()
 		
-		Sql sql = getSql()
+		bw = conf.border ?: 4
+		w = conf.width ?: 99
 		
+		Sql sql = getSql()
 		allowed = sql.firstRow("SELECT count(*) AS amount FROM plotmeAllowed WHERE world=${world}").amount
 		denied = sql.firstRow("SELECT count(*) AS amount FROM plotmeDenied WHERE world=${world}").amount
 		owners = sql.firstRow("SELECT COUNT(*) as amount FROM plotmePlots WHERE world=${world}").amount;
-		
 		sql.close()
 	}
 	
@@ -170,7 +172,7 @@ class PlotMeSqliteLoader extends AbstractSqlFormat implements LoadFormat {
 		}
 		
 		if(am == 0)
-		println "AM  IS 0, INDEX IS $index"
+			println "AM  IS 0, INDEX IS $index"
 		
 		sql.close()
 		return new ArrayList(map.values())
@@ -204,5 +206,16 @@ class PlotMeSqliteLoader extends AbstractSqlFormat implements LoadFormat {
 		return true;
 	}
 	
+	private int getRegionX(int x) {
+		int ix = (x - bw) / (bw + bw + w - 1)
+		
+		return (ix * (bw + w)) + bw
+	}
+	
+	private int getRegionZ(int z) {
+		int iz = (z - bw) / (bw + bw + w - 1)
+		
+		return (iz * (bw + w)) + bw
+	}
 	
 }
